@@ -1,14 +1,22 @@
 #import <iostream>
-#import <cmath> //for nan
-#import <limits> //nan?
+#import <cmath> 
+#import <limits>
 
-//[] intersection array returns 0 (incorrect)
-//		.. issue: hashArray intialized to all 0s
-//[] figure out how to initialize hashArray to NaNs
+// [x] fixed return 0 issue
+// [x] added setNAN() to set entire array to NANs
+// [] feed arrays in
+// [] multi thread compare
+
+void setNAN(double* array, const int &arraySize){
+
+	for(size_t n {0}; n < arraySize; ++n)
+		array[n] = std::numeric_limits<double>::quiet_NaN();
+	return;
+}
 
 int hashing(const int &toHash){
-	const int key {toHash * toHash};	
 
+	const int key {toHash * toHash};	
 	if(key < 10)
 		return key;
 	else if(key >= 10 && key <= 99)
@@ -50,12 +58,13 @@ bool findValue(int key, double* hashArray){
 
 int main(){
 	// determine intersection of two arrays
-	int array1[] {1,2,3,4,5}, array2[] {0,2,4,6,8},
+	int array1[] {1,2,3,4,5}, array2[] {0,2,6,8,9},
 		array3[5]{0};
 
 	//1d array
 	const int hashArraySize {44};
-	double hashArray[hashArraySize] {std::numeric_limits<double>quiet_NaN()}; //set all as NAN
+	double hashArray[hashArraySize] {}; 
+	setNAN(hashArray, hashArraySize); // set all values to NAN
 
 	for(size_t h {0}; h < 5; ++h){
 		keyIndex(hashing(array1[h]), array1[h], hashArray);
