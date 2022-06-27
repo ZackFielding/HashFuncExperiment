@@ -1,17 +1,32 @@
 #import <iostream>
 #import <cmath> 
 #import <limits>
+#import <map>
+#import <thread>
+#import <vector>
 
-// [x] fixed return 0 issue
-// [x] added setNAN() to set entire array to NANs
-// [] feed arrays in
-// [] multi thread compare
+// [] fix compiler error related to returning std::map<>
+// [] make sure both custom and std::map hashing works
+// [] adjust threading
 
-void setNAN(double* array, const int &arraySize){
+	// global var
+std::vector<double*>hashArrayVector; 
 
-	for(size_t n {0}; n < arraySize; ++n)
-		array[n] = std::numeric_limits<double>::quiet_NaN();
-	return;
+double* customMap (int *array, const int &arraySize, int(*hashing)(const int &),
+		void(*keyIndex)(int, int, double *)){
+
+	const int hashArraySize {42}; //set to 42 for simplicity
+	static int currentVector {0};
+	hashArrayVector.push_back(new double [hashArraySize]);
+
+	for(size_t n {0}; n < hashArraySize; ++n)
+		hashArrayVector.at(currentVector)[n] = std::numeric_limits<double>::quiet_NaN();
+
+	for(size_t k {0}; k < arraySize; ++k)
+		keyIndex(hashing(array[k]), array[k], hashArrayVector.at(currentVector));  
+	
+	++currentVector;
+	return hashArrayVector.at(currentVector-1); // -1 to account for previous++	
 }
 
 int hashing(const int &toHash){
@@ -29,7 +44,7 @@ int hashing(const int &toHash){
 	}
 }
 
-void keyIndex(int key, int &toHash, double* hashArray){
+void keyIndex(int key, int toHash, double* hashArray){
 
 	if(std::isnan(hashArray[key*4])){
 		hashArray[key*4] = toHash;
@@ -56,32 +71,39 @@ bool findValue(int key, double* hashArray){
 		return false;
 }
 
+void customHashRun(double* customHashArray, int array1[], const int &array1size, 
+		int(*hashing)(const int &), void(*keyIndex)(int, int, double *)){
+
+	customHashArray = customMap(array1, array1size, hashing, keyIndex);
+	std::cout << "Custom hash func completed." << std::endl;	
+	return;
+}
+
+// compiler errror related to returning std::map<>
+std::map<int, int> standardMapRun(int array1[], int array1size){
+	
+	std::map<int, int> standardMap(array1[0], array1[array1size-1]);
+	std::cout << "Standard map completed." << std::endl;
+	return standardMap;
+}
+
 int main(){
-	// determine intersection of two arrays
-	int array1[] {1,2,3,4,5}, array2[] {0,2,6,8,9},
-		array3[5]{0};
 
-	//1d array
-	const int hashArraySize {44};
-	double hashArray[hashArraySize] {}; 
-	setNAN(hashArray, hashArraySize); // set all values to NAN
+	int array1[] {1,2,3,4,5}, array2[] {0,2,6,8,9}, array3[5]{0};
+	const int array1size {5};
 
-	for(size_t h {0}; h < 5; ++h){
-		keyIndex(hashing(array1[h]), array1[h], hashArray);
-	}	
-	
-	int array3size {0};
-	for(size_t j {0}; j < 5; ++j){
-		if(findValue(array2[j], hashArray)){
-			array3[array3size] = array2[j];
-			++array3size;
-		}
-	}
-	
-	std::cout << "Array intersection: ";
-	for(size_t p {0}; p < array3size; ++p)
-		std::cout << array3[p] << " ";
-	std::cout << std::endl;
+	double *customHashArray {nullptr};
+	std::map<int, int> mapRecieve;
+
+	std::thread customThread (customHashRun, customHashArray, array1, array1size,
+			hashing, keyIndex);
+	mapRecieve = standardMapRun(array1, array1size);	
+
+	customThread.join(); // wait for thread 2 to finish
+
+	// free heap
+	for(double* ptr : hashArrayVector)
+		delete [] ptr;
 
 	return 0;
 }
