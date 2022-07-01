@@ -63,16 +63,19 @@ void keyIndex(int key, int toHash, double* hashArray){
 
 }
 
-bool findValue(int key, double* hashArray){
-
-	int keyReturned {hashing(key)};
-
-	if(hashArray[keyReturned*4] == key)
-		return true;
-	else if(hashArray[keyReturned*4+2] == key)
-		return true;
-	else
-		return false;
+void findIntersection(double* hashArray,
+		int* c_array, const int& c_arraySize,
+	   	std::pair<int, int*>& pair){
+	
+	int keyReturned {};
+	for(size_t o {0}; o < c_arraySize; ++o){
+		keyReturned = hashing(c_array[o]);
+		if(hashArray[keyReturned*4] == c_array[o] ||
+			hashArray[keyReturned*4+2] == c_array[o]){
+			pair.second[o] = c_array[o];
+			++(pair.first);
+			}
+		}
 }
 
 void generateMap(std::map<int, bool> &map, 
@@ -87,13 +90,26 @@ void generateMap(std::map<int, bool> &map,
 int main(){
 
 	int array1[] {1,2,3,4,5}, array2[] {0,2,6,8,9}, array3[5]{0};
-	const int array1size {5};
+	const int array1size {5}, array2size {5}, array3size{5};
 
 	std::map<int, bool> map;
 	generateMap(map, array1, array1size); // generate ordered map	
 
 	double* myMap {nullptr};
 	myMap = customMap(array1, array1size, hashing, keyIndex);	
+
+	std::pair<int, int*> arrayInterPair ({0, array3});
+	findIntersection(myMap, array2, array2size, arrayInterPair);
+
+	if(arrayInterPair.first > 0){
+		std::cout << "Array intersection found: [";
+		for(size_t a {0}; a < arrayInterPair.first; ++a){
+			std::cout << arrayInterPair.second[a];
+			if(a < arrayInterPair.first - 1)
+				std::cout << " ";
+		}	
+		std::cout << "].\n";
+	}	
 
 	// free heap
 	for(double* &ptr : hashArrayVector)
