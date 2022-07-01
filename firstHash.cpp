@@ -72,7 +72,7 @@ void findIntersection(double* hashArray,
 		keyReturned = hashing(c_array[o]);
 		if(hashArray[keyReturned*4] == c_array[o] ||
 			hashArray[keyReturned*4+2] == c_array[o]){
-			pair.second[o] = c_array[o];
+			pair.second[pair.first] = c_array[o];
 			++(pair.first);
 			}
 		}
@@ -89,7 +89,7 @@ void generateMap(std::map<int, bool> &map,
 
 int main(){
 
-	int array1[] {1,2,3,4,5}, array2[] {0,2,6,8,9}, array3[5]{0};
+	int array1[] {1,2,3,4,5}, array2[] {0,0,6,8,9}, array3[5]{0};
 	const int array1size {5}, array2size {5}, array3size{5};
 
 	std::map<int, bool> map;
@@ -109,7 +109,8 @@ int main(){
 				std::cout << " ";
 		}	
 		std::cout << "].\n";
-	}	
+	}else
+		std::cout << "No array intersection found.\n";	
 
 	// free heap
 	for(double* &ptr : hashArrayVector)
